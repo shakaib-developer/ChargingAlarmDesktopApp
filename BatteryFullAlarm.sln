@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatteryFullAlarm", "BatteryFullAlarm\BatteryFullAlarm.csproj", "{8F05233F-5E0D-49C7-94A8-190B4E3F2FE5}"
+EndProject
+Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "Battery Full Alarm", "Battery Full Alarm\Battery Full Alarm.aiproj", "{1885264F-B096-4D6A-A2C1-F5C48D6F237D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		All|Any CPU = All|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8F05233F-5E0D-49C7-94A8-190B4E3F2FE5}.All|Any CPU.ActiveCfg = Release|Any CPU
+		{8F05233F-5E0D-49C7-94A8-190B4E3F2FE5}.All|Any CPU.Build.0 = Release|Any CPU
+		{8F05233F-5E0D-49C7-94A8-190B4E3F2FE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F05233F-5E0D-49C7-94A8-190B4E3F2FE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F05233F-5E0D-49C7-94A8-190B4E3F2FE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F05233F-5E0D-49C7-94A8-190B4E3F2FE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1885264F-B096-4D6A-A2C1-F5C48D6F237D}.All|Any CPU.ActiveCfg = DefaultBuild
+		{1885264F-B096-4D6A-A2C1-F5C48D6F237D}.All|Any CPU.Build.0 = DefaultBuild
+		{1885264F-B096-4D6A-A2C1-F5C48D6F237D}.Debug|Any CPU.ActiveCfg = DefaultBuild
+		{1885264F-B096-4D6A-A2C1-F5C48D6F237D}.Debug|Any CPU.Build.0 = DefaultBuild
+		{1885264F-B096-4D6A-A2C1-F5C48D6F237D}.Release|Any CPU.ActiveCfg = DefaultBuild
+		{1885264F-B096-4D6A-A2C1-F5C48D6F237D}.Release|Any CPU.Build.0 = DefaultBuild
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8DE2063E-98E5-483D-AD3A-5B11FE2F9580}
+	EndGlobalSection
+EndGlobal
