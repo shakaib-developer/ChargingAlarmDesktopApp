@@ -1,11 +1,14 @@
 ﻿using BatteryFullAlarm.Properties;
 using System;
 using System.Drawing;
+using System.Management;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
+using System.Speech.Synthesis;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace BatteryFullAlarm
 {
@@ -17,6 +20,7 @@ namespace BatteryFullAlarm
         NAudio.Wave.DirectSoundOut output = null;
         int i = 0;
         bool canRunAlarm = true;
+        bool isCharging = false;
 
         static readonly CancellationTokenSource cancellationToken = new CancellationTokenSource();
 
@@ -24,6 +28,8 @@ namespace BatteryFullAlarm
         {
             InitializeComponent();
             timer.Start();
+
+            LoadIconAndText();
         }
 
         public static BatteryFullIndicator getObject()
@@ -45,17 +51,19 @@ namespace BatteryFullAlarm
             Charge = status.BatteryLifePercent.ToString("P0");
             lineStatus = status.PowerLineStatus.ToString();
 
-            label1.Text = status.BatteryFullLifetime.ToString();
-
-
             batteryPercentage.Value = Convert.ToInt32(Charge.Replace("%", ""));
+
+            string minLimit = Settings.Default.minChargeLimit.ToString();
+            string maxLimit = Settings.Default.maxChargeLimit.ToString();
+
+            canRunAlarm = (lineStatus.Contains("Online") && !isCharging) || (!lineStatus.Contains("Online") && isCharging); // [Is charging now and was not charging (Is Pluggedin now)] OR [Is not charging now and was charging (Is Unplugged now)]
 
             if (!lineStatus.Contains("Online"))
             {
                 lblBatteryPercent.Text = "Battery : " + Charge;
                 if (btnSilent.BackgroundImage.Size.Width == Resources.speaker.Size.Width) // Repeat
                 {
-                    if (Charge.Contains("35") && (i % 5 == 0))
+                    if (Charge.Contains(minLimit) && (i % 5 == 0))
                     //if (Charge.Contains("5") && (i % 5 == 0))
                     {
                         RingBatteryLowAlarm();
@@ -70,7 +78,7 @@ namespace BatteryFullAlarm
                 {
                     if (canRunAlarm)
                     {
-                        if (Charge.Contains("35") && (i % 5 == 0))
+                        if (Charge.Contains(minLimit) && (i % 5 == 0))
                         //if (Charge.Contains("5") && (i % 5 == 0))
                         {
                             RingBatteryLowAlarm();
@@ -87,7 +95,7 @@ namespace BatteryFullAlarm
 
                 if (btnSilent.BackgroundImage.Size.Width == Resources.speaker.Size.Width) // Repeat
                 {
-                    if (Charge.Contains("100") && (i % 5 == 0))
+                    if (Charge.Contains(maxLimit) && (i % 5 == 0))
                     {
                         RingBatteryFullAlarm();
                     }
@@ -100,7 +108,7 @@ namespace BatteryFullAlarm
                 {
                     if (canRunAlarm)
                     {
-                        if (Charge.Contains("100") && (i % 5 == 0))
+                        if (Charge.Contains(maxLimit) && (i % 5 == 0))
                         {
                             RingBatteryFullAlarm();
 
@@ -120,22 +128,36 @@ namespace BatteryFullAlarm
 
         private void RingBatteryLowAlarm()
         {
-            Console.Beep(2000, 1000);
+            Task.Run(() =>
+            {
+                Console.Beep(2000, 1000);
 
-            mp3 = new NAudio.Wave.Mp3FileReader(@"C:\Program Files (x86)\Shakaib Gujjar\Battery Full Alarm\Low.mp3");
-            output = new NAudio.Wave.DirectSoundOut();
-            output.Init(new NAudio.Wave.WaveChannel32(mp3));
-            output.Play();
+                SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer();
+                speechSynthesizer.Speak("Battery Getting Low, Please plug in the charger.");
+                speechSynthesizer.Dispose();
+            });
+
+            //mp3 = new NAudio.Wave.Mp3FileReader(@"C:\Program Files (x86)\Shakaib Gujjar\Battery Full Alarm\Low.mp3");
+            //output = new NAudio.Wave.DirectSoundOut();
+            //output.Init(new NAudio.Wave.WaveChannel32(mp3));
+            //output.Play();
         }
 
         private void RingBatteryFullAlarm()
         {
-            Console.Beep(2000, 1000);
+            Task.Run(() =>
+            {
+                Console.Beep(2000, 1000);
 
-            mp3 = new NAudio.Wave.Mp3FileReader(@"C:\Program Files (x86)\Shakaib Gujjar\Battery Full Alarm\Charged.mp3");
-            output = new NAudio.Wave.DirectSoundOut();
-            output.Init(new NAudio.Wave.WaveChannel32(mp3));
-            output.Play();
+                SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer();
+                speechSynthesizer.Speak("Battery has been charged, Please unplug the charger.");
+                speechSynthesizer.Dispose();
+            });
+
+            //mp3 = new NAudio.Wave.Mp3FileReader(@"C:\Program Files (x86)\Shakaib Gujjar\Battery Full Alarm\Charged.mp3");
+            //output = new NAudio.Wave.DirectSoundOut();
+            //output.Init(new NAudio.Wave.WaveChannel32(mp3));
+            //output.Play();
         }
 
         private void btnSilent_Click(object sender, EventArgs e)
@@ -150,23 +172,77 @@ namespace BatteryFullAlarm
 
         private void UpdateIconAndText()
         {
-            if (btnSilent.BackgroundImage.Size.Width == Resources.speaker.Size.Width) // Repeat
+            //if (btnSilent.BackgroundImage.Size.Width == Resources.speaker.Size.Width) // Repeat
+            if (Settings.Default.btnImage == "speaker")
             {
                 btnSilent.BackgroundImage = Resources.silent;
                 lblStatus.Text = "Silent";
+
+                // Update Properties in Shared Preferences
+                Settings.Default.btnImage = "silent";
+                Settings.Default.btnText = "Silent";
+                Settings.Default.Save();
             }
-            else if (btnSilent.BackgroundImage.Size.Width == Resources.silent.Size.Width) // Silent
+            //else if (btnSilent.BackgroundImage.Size.Width == Resources.silent.Size.Width) // Silent
+            else if (Settings.Default.btnImage == "silent")
             {
                 btnSilent.BackgroundImage = Resources.speakonce;
                 lblStatus.Text = "Ring Once";
                 canRunAlarm = true;
+
+                // Update Properties in Shared Preferences
+                Settings.Default.btnImage = "speakonce";
+                Settings.Default.btnText = "Ring Once";
+                Settings.Default.Save();
             }
             else // Once
             {
                 btnSilent.BackgroundImage = Resources.speaker;
                 lblStatus.Text = "Repeat Ring";
+
+                // Update Properties in Shared Preferences
+                Settings.Default.btnImage = "speaker";
+                Settings.Default.btnText = "Repeat Ring";
+                Settings.Default.Save();
             }
             i = 0;
+        }
+
+        private void LoadIconAndText()
+        {
+            if (Settings.Default.btnImage == "speaker")
+            {
+                btnSilent.BackgroundImage = Resources.speaker;
+                lblStatus.Text = "Repeat Ring";
+            }
+            else if (Settings.Default.btnImage == "silent")
+            {
+                btnSilent.BackgroundImage = Resources.silent;
+                lblStatus.Text = "Silent";
+                canRunAlarm = true;
+            }
+            else // Once
+            {
+                btnSilent.BackgroundImage = Resources.speakonce;
+                lblStatus.Text = "Ring Once";
+            }
+        }
+
+        private void settingMenu_Click(object sender, EventArgs e)
+        {
+            string btnImageOld = Settings.Default.btnImage, btnTextOld = Settings.Default.btnText, minLimitOld = Settings.Default.minChargeLimit.ToString(), maxLimitOld = Settings.Default.maxChargeLimit.ToString();
+
+            SettingsForm setting = new SettingsForm();
+            setting.ShowDialog();
+
+            string btnImageNew = Settings.Default.btnImage, btnTextNew = Settings.Default.btnText, minLimitNew = Settings.Default.minChargeLimit.ToString(), maxLimitNew = Settings.Default.maxChargeLimit.ToString();
+            if (btnImageNew == "speaker")
+            {
+                if (btnImageOld != btnImageNew || btnTextOld != btnTextNew || minLimitOld != minLimitNew || maxLimitOld != maxLimitNew)
+                {
+                    canRunAlarm = true;
+                }
+            }
         }
     }
 }
