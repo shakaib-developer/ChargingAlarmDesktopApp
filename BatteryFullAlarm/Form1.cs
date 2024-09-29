@@ -19,7 +19,7 @@ namespace BatteryFullAlarm
 
 		NAudio.Wave.Mp3FileReader mp3 = null;
 		NAudio.Wave.DirectSoundOut output = null;
-		int i = 0;
+		int i = 0, tick = 8;
 		bool canRunAlarm = true;
 		bool isCharging = false;
 
@@ -64,8 +64,10 @@ namespace BatteryFullAlarm
 
 			batteryPercentage.Value = Convert.ToInt32(Charge.Replace("%", ""));
 
-			string minLimit = Settings.Default.minChargeLimit.ToString();
-			string maxLimit = Settings.Default.maxChargeLimit.ToString();
+			string minLimitString = Settings.Default.minChargeLimit.ToString();
+			string maxLimitString = Settings.Default.maxChargeLimit.ToString();
+			int minLimit = Settings.Default.minChargeLimit;
+			int maxLimit = Settings.Default.maxChargeLimit;
 
 			//canRunAlarm = (lineStatus.Contains("Online") && (!isCharging)) || (!lineStatus.Contains("Online") && isCharging); // [Is charging now and was not charging (Is Pluggedin now)] OR [Is not charging now and was charging (Is Unplugged now)]
 
@@ -76,7 +78,8 @@ namespace BatteryFullAlarm
 				lblBatteryPercent.Text = "Battery : " + Charge;
 				if (btnSilent.BackgroundImage.Size.Width == Resources.speaker.Size.Width) // Repeat
 				{
-					if (Charge.Contains(minLimit) && (i % 5 == 0))
+					if (batteryPercentage.Value <= minLimit && (i % tick == 0))
+					//if (Charge.Contains(minLimit) && (i % 5 == 0))
 					//if (Charge.Contains("5") && (i % 5 == 0))
 					{
 						RingBatteryLowAlarm();
@@ -89,7 +92,8 @@ namespace BatteryFullAlarm
 				}
 				else // Once
 				{
-					if (canRunAlarm && Charge.Contains(minLimit) && (i % 5 == 0))
+					if (canRunAlarm && batteryPercentage.Value <= minLimit && (i % tick == 0))
+					//if (canRunAlarm && Charge.Contains(minLimit) && (i % 5 == 0))
 					{
 						RingBatteryLowAlarm();
 						canRunAlarm = false; // Only ring once
@@ -104,7 +108,8 @@ namespace BatteryFullAlarm
 
 				if (btnSilent.BackgroundImage.Size.Width == Resources.speaker.Size.Width) // Repeat
 				{
-					if (Charge.Contains(maxLimit) && (i % 5 == 0))
+					if (batteryPercentage.Value >= maxLimit && (i % tick == 0))
+					//if (Charge.Contains(maxLimit) && (i % 5 == 0))
 					{
 						RingBatteryFullAlarm();
 					}
@@ -117,7 +122,8 @@ namespace BatteryFullAlarm
 				{
 					if (canRunAlarm)
 					{
-						if (Charge.Contains(maxLimit) && (i % 5 == 0))
+						if (batteryPercentage.Value >= maxLimit && (i % tick == 0))
+						//if (Charge.Contains(maxLimit) && (i % 5 == 0))
 						{
 							RingBatteryFullAlarm();
 
@@ -139,10 +145,11 @@ namespace BatteryFullAlarm
 		{
 			Task.Run(() =>
 			{
-				Console.Beep(2000, 1000);
+				//Console.Beep(2000, 1000);
 
 				SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer();
-				speechSynthesizer.Speak("Battery Getting Low, Please plug in the charger.");
+				speechSynthesizer.Speak($"Battery is low ({batteryPercentage.Value}%). Please connect your laptop to a charger.");
+				//speechSynthesizer.Speak("Battery Getting Low, Please plug in the charger.");
 				speechSynthesizer.Dispose();
 			});
 
@@ -156,10 +163,11 @@ namespace BatteryFullAlarm
 		{
 			Task.Run(() =>
 			{
-				Console.Beep(2000, 1000);
+				//Console.Beep(2000, 1000);
 
 				SpeechSynthesizer speechSynthesizer = new SpeechSynthesizer();
-				speechSynthesizer.Speak("Battery has been charged, Please unplug the charger.");
+				speechSynthesizer.Speak($"Battery is full ({batteryPercentage.Value}%). Please disconnect your laptop from the charger.");
+				//speechSynthesizer.Speak("Battery has been charged, Please unplug the charger.");
 				speechSynthesizer.Dispose();
 			});
 
